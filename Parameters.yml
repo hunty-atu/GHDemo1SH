@@ -1,0 +1,47 @@
+Parameters:
+
+ VpcCIDR:
+    Description: IPv4 CIDR block for the VPC
+    Type: String
+    Default: 10.0.0.0/16 #Default Tenancy.
+    #Largest subnet to choose - 65,536 IP's.
+  
+  PublicSubnetA:
+    Description: IPv4 CIDR block for the public subnet
+    Type: String
+    Default: 10.0.0.0/24
+    #251 IP addresses
+
+  PublicSubnetB:
+    Description: IPv4 CIDR block for the public subnet
+    Type: String
+    Default: 10.0.1.0/24
+    #Diff IP range than PublicSubnetA above.
+
+  PrivateSubnetA:
+    Description: IPv4CIDR block for the private subnet
+    Type: String
+    Default: 10.0.16.0/20
+    #4091 Ip addresses
+  
+  Private2SubnetB:
+    Description: IPv4 CIDR block for the private subnet
+    Type: String
+    Default: 10.0.32.0/20
+  
+  EC2InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro 
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      
+  SSHLocation:
+    AllowedPatern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    Constraint Descrp:
+    Default: 0.0.0.0/0
+    Description: IP add that can be used to access web server using SSH.
+    MaxLength: '18'
+    MinLength: '9'
+    Type: String 
