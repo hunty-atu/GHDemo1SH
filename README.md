@@ -1,5 +1,5 @@
 # GHDemo1SH
-![alt text](VPC_MiniNetwork.jp)
+![VPC Diagram]("C:\Users\hunty\Pictures\VPC_MiniNetwork.jpg")
 
 *GitHub Recap Lab - Ruth L l00138043@atu.ie
 https://www.youtube.com/watch?v=E_IvgCUlXLQ
