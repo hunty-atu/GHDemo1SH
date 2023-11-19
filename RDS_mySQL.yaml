@@ -1,0 +1,54 @@
+    "RDS-SEC-GROUP-1": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription": "Open database for access",
+        "SecurityGroupIngress" : [{
+        "IpProtocol" : "tcp",
+        "FromPort" : "3306",
+        "ToPort" : "3306",
+        "SourceSecurityGroupId" : { "Ref" : "WebServerSecurityGroup" }
+        }],
+        "VpcId" : { "Ref" : "VpcId" }
+      }
+    },
+
+    "DBInstance1" : {
+      "Type": "AWS::RDS::DBInstance",
+      "Properties": {
+        "DBName"            : { "Ref" : "DBName" }, #DB instance identifier
+        "Engine"            : "MySQL",
+        "MultiAZ"           : { "Ref": "MultiAZDatabase" },
+        "MasterUsername"    : { "Ref" : "DBUser" }, #admin
+        "MasterUserPassword": { "Ref" : "DBPassword" },
+        "DBInstanceClass"   : { "Ref" : "DBClass" },
+        "AllocatedStorage"  : { "Ref" : "DBAllocatedStorage" }, #20GB
+        "VPCSecurityGroups" : [{ "Fn::GetAtt": [ "DBEC2SecurityGroup", "GroupId" ]}]
+      }
+    }
+  },
+
+1. Create RDS mySQL Database
+2. Enter admin/password
+3. Db.t2.micro
+4. Create security group
+5. Create EC2 instance for WordPress
+
+#!/bin/bash
+yum update -y
+amazon-linux-extras install-y php7.2
+yum install -y httpd
+systemctl start httpd
+systemctl enable httpd
+cd /var/www/html
+wget https://wordpress.org/latest.tar.gz
+tar -xzf latest.tar.gz
+cp - r wordpress/* ./
+chmod -R 755 wp-content
+chown -R apache:apache wp-content
+
+6. http onto public IP address of instance
+7. Enter credntials & Endpoint
+8. SSH instance and change DIR to var/www/html/folder
+9. Create php file and copy code from wordpress box to php file
+10. Press CTRL +X, Y, Enter
+11. Return to webpage and run installation.

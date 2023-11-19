@@ -1,0 +1,286 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+
+  VpcCIDR:
+    Description: IPv4 CIDR range for the VPC
+    Type: String
+    Default: 10.0.0.0/16 #Largest subnet to choose - 65,536 IP's.
+  
+  PublicSubnetA:
+    Description: IPv4 CIDR range for the public subnet
+    Type: String
+    Default: 10.0.0.0/24 #251 IP addresses.
+
+  PublicSubnetB:
+    Description: IPv4 CIDR range for the public subnet
+    Type: String 
+    Default: 10.0.1.0/24 #Diff IP range than PublicSubnetA.
+
+  PrivateSubnetA:
+    Description: IPv4CIDR range for the private subnet
+    Type: String 
+    Default: 10.0.16.0/20 #4091 Ip addresses
+  
+  PrivateSubnetB:
+    Description: IPv4 CIDR range for the private subnet
+    Type: String
+    Default: 10.0.32.0/20 #Diff IP range than PrivateSubnetA.
+
+# Create DemoVPC    
+Resources:
+  myVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name tag
+          Value: DemoVPC 
+
+  myInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: DemoIGW
+
+  myVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myVPC
+      InternetGatewayId: !Ref myInternetGateway
+      
+  ImportedKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: Student_KP
+      PublicKeyMaterial: SHA256:8J+hVY8EYW1pjjXiG4KgyYip+o1TkNHopsBxj0Fh6wE
+      
+# Creating Public and Private Subnets {eu-west-1a & eu-west-1b}.
+
+  myPublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: eu-west-1a
+      Tags:
+        - Key: Name tag
+          Value: PublicSubnetA
+
+  myPublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: eu-west-1b
+      Tags:
+        - Key: Name tag
+          Value: PublicSubnetB
+
+  myPrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.16.0/20
+      AvailabilityZone: eu-west-1a
+      Tags:
+        - Key: Name
+          Value: PrivateSubnetA
+
+  myPrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref myVPC
+      CidrBlock: 10.0.32.0/20
+      AvailabilityZone: eu-west-1b
+      Tags:
+        - Key: Name
+          Value: PrivateSubnetB
+           
+#Creating Public EC2 instance & Public Sec Group.
+          
+  PublicInstanceA:
+    Type: AWS::EC2::Instance
+    DependsOn: 
+     - myVPCGatewayAttachment # For NetworkInterfaces GroupSet
+    Properties:
+     InstanceType:
+      Ref: myVPC
+      ImageId: ami-0e309a5f3a6dd97ea
+      KeyName: ImportedKeyPair
+      SubnetId: !Ref myPublicSubnetA
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+           - Ref: PublicInstanceA
+      Tags:
+        - Key: Name tag
+          Value: PublicEC2-A
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+            sudo su
+            yum update
+            -y
+            yum install
+            -y httpd.x86_64
+            systemctl start httpd.service
+            systemctl enable httpd.service
+            echo "Hello Ruth from EU-West-1A" > /var/www/html/index.html
+       
+  publicEC2SecGroupA:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP access via port 80 and SSH access via port 22
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name tag
+          Value: PublicEC2-SecGroup     
+          
+#Creating Private EC2 instance & Private Sec Group.
+
+  PrivateInstanceA:
+    Type: AWS::EC2::Instance
+    Properties:
+      Ref: InstanceTypeParameter
+      ImageId: ami-0e309a5f3a6dd97ea
+      KeyName: ImportedKeyPair
+      SubnetId: !Ref myPrivateSubnetA
+      Tags:
+        - Key: Name tag
+          Value: PrivateInstanceA #No IPv4 IP.
+          
+  privateEC2SecGroupA:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SSH from VPC
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 10.0.0.0/16
+      Tags:
+        - Key: Name tag
+          Value: SSH from VPC
+
+#Create public/private route table
+
+  myPublicRouteTable: #For Public subnet
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  myPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref myVPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
+
+# Add public route to public route table and visaversa on Private Routes.
+
+  myPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: myVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref myPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref myInternetGateway
+
+  myPrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn: myVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref myPrivateRouteTable
+      DestinationCidrBlock: 10.0.0.0/16
+      GatewayId: !Ref myInternetGateway
+           
+      
+ #Associate the public subnets with public route table and visaversa on Private Routes.
+ 
+  myPublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref myPublicSubnetA
+      RouteTableId: !Ref myPublicRouteTable
+
+  myPrivateSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref myPrivateSubnetB
+      RouteTableId: !Ref myPrivateRouteTable
+      
+ #NAT Instance and security group in subnetA
+      
+  MynatEC2Instance:                                 
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-07671e7f5ef0236fd
+      InstanceType: !Ref InstanceTypeParameter
+      KeyName: ImportedKeyPair
+      SourceDestCheck: 'false'
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0 
+          GroupSet: #The IDs of the security groups for the network interface.
+            - !Ref mynatEC2SecurityGroup      
+          SubnetId: !Ref myPublicSubnetA
+      Tags:
+        - Key: Name tag
+          Value: NAT InstanceA  
+          
+  mynatEC2SecurityGroup:                          
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: HTTP from VPC
+      VpcId: !Ref myVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 10.0.0.0/16
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: -1
+          ToPort: 1
+          CidrIp: 10.0.0.0/16
+      Tags:
+        - Key: Name tag
+          Value: HTTP from VPC
+        - Key: Name tag
+          Value: SSH
+        - Key: Name tag
+          Value: ICMP from VPC
+                  
+

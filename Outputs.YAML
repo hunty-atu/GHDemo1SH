@@ -1,0 +1,29 @@
+Outputs:
+  MyEC2InstanceA:
+    Description: The public IP address EC2 instance A
+    Value: !GetAtt PublicInstanceA.PublicIp
+
+  PrivateInstanceA
+    Description: The private IP address EC2 private instance A
+    Value: !GetAtt PrivateInstanceA.PrivateIp
+
+ MynatEC2Instance:    
+    Description: The public IP address EC2 NAT instance A
+    Value: !GetAtt MynatEC2Instance.PublicIp                           
+
+  MyDBInstance:
+    Description: The endpoint of the newly created RDS instance
+    Value: !GetAtt MyDBInstance.Endpoint.Address  
+  MyDBInstancePort:
+    Description: The port of the newly created RDS instance
+    Value: !GetAtt MyDBInstance.Endpoint.Port
+  MyDBInstanceUsername:
+    Description: The username of the newly created RDS instance
+    Value: !Ref RDSUsername
+  MyVPC:
+    Description: The ID of the newly created VPC
+    Value: !Ref myVPC
+  myPublicSubnet:
+    Description: The ID of the newly created public subnet
+    Value: !Ref myPublicSubnet
+    

@@ -1,0 +1,27 @@
+# Create Security Group for the Bastion Host aka Jump Box
+
+  SSHSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: SSH Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: # TBC
+      Tags:
+        - Key: Name
+          Value: #TBC
+      VpcId: !Ref VPC
+	  
+  IAMroleEC2toS3:  
+      Type: "AWS::IAM::Role"
+      Properties:
+       AssumeRolePolicyDocument:
+        Version: 2012-10-17
+       RoleName: IAMroleEC2toS3   
+       Statement:
+           - Action: "*"
+           - Effect: Allow
+           - Resource: "*"
+           - Principal: "*"
