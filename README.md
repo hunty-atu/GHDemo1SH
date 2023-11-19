@@ -1,7 +1,8 @@
-# GHDemo1SH
-![VPC Diagram]("C:\Users\hunty\Pictures\VPC_MiniNetwork.jpg")
+# GHDemo1SH_Ruth L 
+# Mini-Network Assign 50%
+# Student l00138043@atu.ie
 
-*CF Assign 50% - Ruth L l00138043@atu.ie
+#Study references
 https://www.youtube.com/watch?v=E_IvgCUlXLQ
 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*
 *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*
