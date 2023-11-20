@@ -66,7 +66,7 @@ Resources:
     Type: AWS::EC2::KeyPair
     Properties:
       KeyName: Student_KP
-      PublicKeyMaterial: SHA256:8J+hVY8EYW1pjjXiG4KgyYip+o1TkNHopsBxj0Fh6wE
+      PublicKeyMaterial: ****
       
 # Creating Public and Private Subnets {eu-west-1a & eu-west-1b}.
 
