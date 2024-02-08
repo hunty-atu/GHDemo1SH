@@ -1,6 +1,6 @@
 # GHDemo1SH_Ruth L 
-# Mini-Network Assign 50%
-# Student l00138043@atu.ie
+# Mini-Network Assign 
+
 
 #Study references
 https://www.youtube.com/watch?v=E_IvgCUlXLQ
