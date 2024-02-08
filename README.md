@@ -1,4 +1,4 @@
-# GHDemo1SH_Ruth L 
+# GHDemo1SH_Sean Hunt
 # Mini-Network Assign 
 
 
